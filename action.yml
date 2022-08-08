@@ -1,0 +1,86 @@
+name: 'NeuVector Image Scan'
+description: 'Scans a container image with NeuVector'
+inputs:
+  image-registry:
+    description: 'Registry of the image to scan'
+    required: false
+    default: ''
+  image-repository:
+    description: 'Repository of the image to scan'
+    required: true
+  image-tag:
+    description: 'Tag of the image to scan'
+    required: true
+  min-high-cves-to-fail:
+    description: 'Minimum CVEs with high severity to fail the job'
+    required: false
+    default: '0'
+  min-medium-cves-to-fail:
+    description: 'Minimum CVEs with medium severity to fail the job'
+    required: false
+    default: '0'
+  cve-names-to-fail:
+    description: 'List of CVE names that make the job fail'
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Scan Image
+      shell: bash
+      run: |          
+        high_vul_to_fail=${{ inputs.min-high-cves-to-fail }}
+        medium_vul_to_fail=${{ inputs.min-medium-cves-to-fail }}
+        vul_names_to_fail=${{ inputs.cve-names-to-fail }}
+
+        current_dir=$(pwd)
+        
+        echo "SCANNER_REPOSITORY=${{ inputs.image-repository }}" > scan.env
+        echo "SCANNER_TAG=${{ inputs.image-tag }}" >> scan.env
+        echo "SCANNER_ON_DEMAND=true " >> scan.env
+
+        if [ -z "$nv_service_ip" ]; then
+          echo "SCANNER_REGISTRY=$image_registry_url" >> scan.env
+        fi
+
+        docker run --name neuvector.scanner --rm --env-file scan.env -v /var/run/docker.sock:/var/run/docker.sock -v $current_dir:/var/neuvector neuvector/scanner:latest
+
+        VUL_NUM=`cat scan_result.json | jq '.report.vulnerabilities | length'`
+        if [ $VUL_NUM -eq 0 ]; then
+          echo No vulnerabilities found.
+        else
+          echo Total number of vulnerabilities, $VUL_NUM, grouped by package name with vulnerability name.
+          jq '[.report.vulnerabilities | group_by(.package_name) | .[] | {package_name: .[0].package_name, vuln_name: [.[].name]}]' scan_result.json
+        fi
+        FOUND_HIGH=`cat scan_result.json | jq '.report.vulnerabilities[] | select(.severity == "High") | .severity' | wc -l`
+        FOUND_MEDIUM=`cat scan_result.json | jq '.report.vulnerabilities[] | select(.severity == "Medium") | .severity' | wc -l`
+        VUL_LIST=`printf '["%s"]' "${vul_names_to_fail//,/\",\"}"`
+        VUL_LIST_FOUND=`cat .scan_result.json | jq --arg arr "$VUL_LIST" '.report.vulnerabilities[] | select(.name as $n | $arr | index($n)) |.name'`
+
+        if [ -z "$VUL_LIST_FOUND" ]; then
+          echo -e "Found High Vulnerabilities = $FOUND_HIGH \nFound Medium Vulnerabilities = $FOUND_MEDIUM \n"
+        else
+          echo -e "Found specific named vulnerabilities: \n$VUL_LIST_FOUND \n\nHigh Vulnerabilities threshold = $high_vul_to_fail \nFound High Vulnerabilities = $FOUND_HIGH \n\nMedium vulnerabilities threshold = $medium_vul_to_fail\nFound Medium Vulnerabilities = $FOUND_MEDIUM \n"
+        fi
+  
+        if [[ ! -z $VUL_LIST_FOUND ]]; then
+          echo Fail due to found specific named vulnerabilities.
+          scan_fail="true"
+        elif [ $high_vul_to_fail -ne 0 -a $FOUND_HIGH -ge $high_vul_to_fail ]; then
+          echo Fail due to high vulnerabilities found exceeds the criteria.
+          scan_fail="true"
+        elif [ $medium_vul_to_fail -ne 0 -a $FOUND_MEDIUM -ge $medium_vul_to_fail ]; then
+          echo Fail due to medium vulnerabilities found exceeds the criteria.
+          scan_fail="true"
+        else
+          echo Pass the criteria check.
+          scan_fail="false"
+        fi
+
+        if [ $scan_fail == "true" ]; then
+          echo -e "Image scanning failed.\n\n"
+          exit 1
+        else
+          echo -e "Image scanning succeed.\n\n"
+        fi
