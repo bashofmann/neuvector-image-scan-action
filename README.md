@@ -27,7 +27,7 @@ jobs:
         run: |
           docker build -t registry.organization.com/org/image-name:${{ github.sha }} .
       - name: Scan Image
-        uses: bashofmann/neuvector-image-scan-action@master
+        uses: bashofmann/neuvector-image-scan-action@main
         with:
           image-registry: registry.organization.com
           image-repository: org/image-name
