@@ -56,7 +56,7 @@ runs:
         FOUND_HIGH=`cat scan_result.json | jq '.report.vulnerabilities[] | select(.severity == "High") | .severity' | wc -l`
         FOUND_MEDIUM=`cat scan_result.json | jq '.report.vulnerabilities[] | select(.severity == "Medium") | .severity' | wc -l`
         VUL_LIST=`printf '["%s"]' "${vul_names_to_fail//,/\",\"}"`
-        VUL_LIST_FOUND=`cat .scan_result.json | jq --arg arr "$VUL_LIST" '.report.vulnerabilities[] | select(.name as $n | $arr | index($n)) |.name'`
+        VUL_LIST_FOUND=`cat scan_result.json | jq --arg arr "$VUL_LIST" '.report.vulnerabilities[] | select(.name as $n | $arr | index($n)) |.name'`
 
         if [ -z "$VUL_LIST_FOUND" ]; then
           echo -e "Found High Vulnerabilities = $FOUND_HIGH \nFound Medium Vulnerabilities = $FOUND_MEDIUM \n"
