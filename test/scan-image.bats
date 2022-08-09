@@ -19,7 +19,7 @@ setup_file() {
     echo "Output"
     echo -e $output
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Pass the criteria check" ]]
+    [[ "$output" =~ "Image scanning succeed" ]]
 }
 
 @test "scan image with vulnerabilities and high severity fail" {
@@ -28,7 +28,7 @@ setup_file() {
     echo "Output"
     echo -e $output
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "Fail due to high vulnerabilities found exceeds the criteria" ]]
+    [[ "$output" =~ "due to number of high vulnerabilities exceeding the criteria" ]]
 }
 
 @test "scan image with vulnerabilities and medium severity fail" {
@@ -37,7 +37,7 @@ setup_file() {
     echo "Output"
     echo -e $output
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "Fail due to medium vulnerabilities found exceeds the criteria" ]]
+    [[ "$output" =~ "due to number of medium vulnerabilities exceeding the criteria" ]]
 }
 
 @test "scan image with vulnerabilities and specific CVE fail" {
@@ -46,7 +46,7 @@ setup_file() {
     echo "Output"
     echo -e $output
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "Fail due to found specific named vulnerabilities" ]]
+    [[ "$output" =~ "due to specific named vulnerabilities" ]]
 }
 
 @test "scan image with json output" {

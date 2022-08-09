@@ -42,7 +42,7 @@ VUL_LIST=$(printf '["%s"]' "${VUL_NAMES_TO_FAIL//,/\",\"}")
 VUL_LIST_FOUND=$(cat scan_result.json | jq --arg arr "$VUL_LIST" '.report.vulnerabilities[] | select(.name as $n | $arr | index($n)) |.name')
 
 if [[ -n $VUL_LIST_FOUND ]]; then
-  fail_reason="due to found specific named vulnerabilities."
+  fail_reason="due to specific named vulnerabilities."
   scan_fail="true"
 elif [ ${HIGH_VUL_TO_FAIL} -ne 0 -a $FOUND_HIGH -ge ${HIGH_VUL_TO_FAIL} ]; then
   fail_reason="due to number of high vulnerabilities exceeding the criteria."
