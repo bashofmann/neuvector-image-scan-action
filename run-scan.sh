@@ -35,50 +35,50 @@ fi
 docker cp neuvector.scanner:/var/neuvector/scan_result.json scan_result.json
 docker rm neuvector.scanner
 
-echo "NeuVector scan result for ${SCANNER_REGISTRY}${SCANNER_IMAGE}:${SCANNER_TAG}" > report.log
-
 VUL_NUM=$(cat scan_result.json | jq '.report.vulnerabilities | length')
-if [ ${VUL_NUM} -eq 0 ]; then
-  echo "No vulnerabilities found." >> report.log
-else
-  echo "Total number of vulnerabilities, $VUL_NUM, grouped by package name with vulnerability name." >> report.log
-fi
-
 FOUND_HIGH=$(cat scan_result.json | jq '.report.vulnerabilities[] | select(.severity == "High") | .severity' | wc -l)
 FOUND_MEDIUM=$(cat scan_result.json | jq '.report.vulnerabilities[] | select(.severity == "Medium") | .severity' | wc -l)
 VUL_LIST=$(printf '["%s"]' "${VUL_NAMES_TO_FAIL//,/\",\"}")
 VUL_LIST_FOUND=$(cat scan_result.json | jq --arg arr "$VUL_LIST" '.report.vulnerabilities[] | select(.name as $n | $arr | index($n)) |.name')
 
-if [ -z "$VUL_LIST_FOUND" ]; then
-  echo -e "Found High Vulnerabilities = $FOUND_HIGH \nFound Medium Vulnerabilities = $FOUND_MEDIUM \n" >> report.log
-else
-  echo -e "Found specific named vulnerabilities: \n$VUL_LIST_FOUND \n\nHigh Vulnerabilities threshold = ${HIGH_VUL_TO_FAIL} \nFound High Vulnerabilities = $FOUND_HIGH \n\nMedium vulnerabilities threshold = ${MEDIUM_VUL_TO_FAIL}\nFound Medium Vulnerabilities = $FOUND_MEDIUM \n" >> report.log
-fi
-
 if [[ -n $VUL_LIST_FOUND ]]; then
-  echo Fail due to found specific named vulnerabilities. >> report.log
+  fail_reason="due to found specific named vulnerabilities."
   scan_fail="true"
 elif [ ${HIGH_VUL_TO_FAIL} -ne 0 -a $FOUND_HIGH -ge ${HIGH_VUL_TO_FAIL} ]; then
-  echo Fail due to high vulnerabilities found exceeds the criteria. >> report.log
+  fail_reason="due to number of high vulnerabilities exceeding the criteria."
   scan_fail="true"
 elif [ ${MEDIUM_VUL_TO_FAIL} -ne 0 -a $FOUND_MEDIUM -ge ${MEDIUM_VUL_TO_FAIL} ]; then
-  echo Fail due to medium vulnerabilities found exceeds the criteria. >> report.log
+  fail_reason="due to number of medium vulnerabilities exceeding the criteria."
   scan_fail="true"
 else
-  echo Pass the criteria check. >> report.log
+  fail_reason=""
   scan_fail="false"
 fi
 
-if [[ $scan_fail == "true" ]]; then
-  echo -e "Image scanning failed.\n\n" >> report.log
-else
-  echo -e "Image scanning succeed.\n\n" >> report.log
-fi
-
 if [[ "$OUTPUT" == "text" ]]; then
-  cat report.log
+  echo -e "NeuVector scan result for ${SCANNER_REGISTRY}${SCANNER_REPOSITORY}:${SCANNER_TAG}\n"
+
+  if [ ${VUL_NUM} -eq 0 ]; then
+    echo "No vulnerabilities found."
+  else
+    echo "Total number of vulnerabilities, $VUL_NUM"
+  fi
+
+  if [ -z "$VUL_LIST_FOUND" ]; then
+    echo -e "Found High Vulnerabilities = $FOUND_HIGH \nFound Medium Vulnerabilities = $FOUND_MEDIUM \n"
+  else
+    echo -e "Found specific named vulnerabilities: \n$VUL_LIST_FOUND \n\nHigh Vulnerabilities threshold = ${HIGH_VUL_TO_FAIL} \nFound High Vulnerabilities = $FOUND_HIGH \n\nMedium vulnerabilities threshold = ${MEDIUM_VUL_TO_FAIL}\nFound Medium Vulnerabilities = $FOUND_MEDIUM \n"
+  fi
+
+  echo -e "Vulnerabilities grouped by packages:\n"
 
   jq -r '[.report.vulnerabilities | group_by(.package_name) | .[] | {package_name: .[0].package_name, vuls: [ (.[] | {name: .name, description: .description}) ]}] | .[] | (.package_name) + ":\n" +  (.vuls | [.[] | .name + ": " + .description] | join("\n")) + "\n\n"' scan_result.json
+
+  if [[ $scan_fail == "true" ]]; then
+    echo -e "\nImage scanning failed ${fail_reason}"
+  else
+    echo -e "\nImage scanning succeed"
+  fi
 fi
 
 if [[ "$OUTPUT" == "json" ]]; then
