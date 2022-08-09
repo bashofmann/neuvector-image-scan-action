@@ -42,14 +42,19 @@ jobs:
 
 The following inputs can be used in `step.with`:
 
-| Name                      | Type   | Default | Description                                                     |
-|---------------------------|--------|---------|-----------------------------------------------------------------|
-| `image-registry`          | String |         | Registry of the image to scan, e.g. `registry.organization.com` |
-| `image-repository`        | String |         | Repository of the image to scan, e.g. `org/image-name`          |
-| `image-tag`               | String |         | Tag of the image to scan, e.g. `1.0.0`                          |
-| `min-high-cves-to-fail`   | String | `0`     | Minimum CVEs with high severity to fail the job                 |
-| `min-medium-cves-to-fail` | String | `0`     | Minimum CVEs with medium severity to fail the job               |
-| `cve-names-to-fail`       | String |         | Comma-separated list of CVE names that make the job fail        |
+| Name                      | Type   | Default                    | Description                                                              |
+|---------------------------|--------|----------------------------|--------------------------------------------------------------------------|
+| `image-registry`          | String |                            | Registry of the image to scan, e.g. `https://registry.organization.com/` |
+| `image-registry-username` | String |                            | Username for the registry authentication                                 |
+| `image-registry-password` | String |                            | Password for the registry authentication                                 |
+| `image-repository`        | String |                            | Repository of the image to scan, e.g. `org/image-name`                   |
+| `image-tag`               | String |                            | Tag of the image to scan, e.g. `1.0.0`                                   |
+| `min-high-cves-to-fail`   | String | `0`                        | Minimum CVEs with high severity to fail the job                          |
+| `min-medium-cves-to-fail` | String | `0`                        | Minimum CVEs with medium severity to fail the job                        |
+| `cve-names-to-fail`       | String |                            | Comma-separated list of CVE names that make the job fail                 |
+| `nv-scanner-image`        | String | `neuvector/scanner:latest` | NeuVector Scanner image to use for scanning                              |
+| `output`                  | String | `text`                     | Output format, one of: text,json,csv                                     |
+| `debug`                   | String | `false`                    | Debug mode, on of: true,false                                            |
 
 [release]: https://github.com/bashofmann/neuvector-image-scan-action/releases/latest
 [release-img]: https://img.shields.io/github/release/bashofmann/neuvector-image-scan-action.svg?logo=github

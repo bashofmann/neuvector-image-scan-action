@@ -5,6 +5,14 @@ inputs:
     description: 'Registry of the image to scan'
     required: false
     default: ''
+  image-registry-username:
+    description: 'Username for the registry authentication'
+    required: false
+    default: ''
+  image-registry-password:
+    description: 'Password for the registry authentication'
+    required: false
+    default: ''
   image-repository:
     description: 'Repository of the image to scan'
     required: true
@@ -23,64 +31,31 @@ inputs:
     description: 'List of CVE names that make the job fail'
     required: false
     default: ''
+  nv-scanner-image:
+    description: 'NeuVector Scanner image to use for scanning'
+    required: false
+    default: 'neuvector/scanner:latest'
+  output:
+    description: 'Output format, one of: text,json,csv'
+    required: false
+    default: 'text'
+  debug:
+    description: 'Debug mode, on of: true,false'
+    required: false
+    default: 'false'
 
 runs:
-  using: "composite"
-  steps:
-    - name: Scan Image
-      shell: bash
-      run: |          
-        high_vul_to_fail=${{ inputs.min-high-cves-to-fail }}
-        medium_vul_to_fail=${{ inputs.min-medium-cves-to-fail }}
-        vul_names_to_fail=${{ inputs.cve-names-to-fail }}
-
-        current_dir=$(pwd)
-        
-        echo "SCANNER_REPOSITORY=${{ inputs.image-repository }}" > scan.env
-        echo "SCANNER_TAG=${{ inputs.image-tag }}" >> scan.env
-        echo "SCANNER_ON_DEMAND=true " >> scan.env
-
-        if [ -z "$nv_service_ip" ]; then
-          echo "SCANNER_REGISTRY=$image_registry_url" >> scan.env
-        fi
-
-        docker run --name neuvector.scanner --rm --env-file scan.env -v /var/run/docker.sock:/var/run/docker.sock -v $current_dir:/var/neuvector neuvector/scanner:latest
-
-        VUL_NUM=`cat scan_result.json | jq '.report.vulnerabilities | length'`
-        if [ $VUL_NUM -eq 0 ]; then
-          echo No vulnerabilities found.
-        else
-          echo Total number of vulnerabilities, $VUL_NUM, grouped by package name with vulnerability name.
-          jq '[.report.vulnerabilities | group_by(.package_name) | .[] | {package_name: .[0].package_name, vuln_name: [.[].name]}]' scan_result.json
-        fi
-        FOUND_HIGH=`cat scan_result.json | jq '.report.vulnerabilities[] | select(.severity == "High") | .severity' | wc -l`
-        FOUND_MEDIUM=`cat scan_result.json | jq '.report.vulnerabilities[] | select(.severity == "Medium") | .severity' | wc -l`
-        VUL_LIST=`printf '["%s"]' "${vul_names_to_fail//,/\",\"}"`
-        VUL_LIST_FOUND=`cat scan_result.json | jq --arg arr "$VUL_LIST" '.report.vulnerabilities[] | select(.name as $n | $arr | index($n)) |.name'`
-
-        if [ -z "$VUL_LIST_FOUND" ]; then
-          echo -e "Found High Vulnerabilities = $FOUND_HIGH \nFound Medium Vulnerabilities = $FOUND_MEDIUM \n"
-        else
-          echo -e "Found specific named vulnerabilities: \n$VUL_LIST_FOUND \n\nHigh Vulnerabilities threshold = $high_vul_to_fail \nFound High Vulnerabilities = $FOUND_HIGH \n\nMedium vulnerabilities threshold = $medium_vul_to_fail\nFound Medium Vulnerabilities = $FOUND_MEDIUM \n"
-        fi
-  
-        if [[ ! -z $VUL_LIST_FOUND ]]; then
-          echo Fail due to found specific named vulnerabilities.
-          scan_fail="true"
-        elif [ $high_vul_to_fail -ne 0 -a $FOUND_HIGH -ge $high_vul_to_fail ]; then
-          echo Fail due to high vulnerabilities found exceeds the criteria.
-          scan_fail="true"
-        elif [ $medium_vul_to_fail -ne 0 -a $FOUND_MEDIUM -ge $medium_vul_to_fail ]; then
-          echo Fail due to medium vulnerabilities found exceeds the criteria.
-          scan_fail="true"
-        else
-          echo Pass the criteria check.
-          scan_fail="false"
-        fi
-
-        if [ $scan_fail == "true" ]; then
-          echo -e "Image scanning failed.\n\n"
-          exit 1
-        else
-          echo -e "Image scanning succeed.\n\n"
-        fi
+  using: "docker"
+  image: 'Dockerfile'
+  env:
+    HIGH_VUL_TO_FAIL: ${{ inputs.min-high-cves-to-fail }}
+    MEDIUM_VUL_TO_FAIL: ${{ inputs.min-medium-cves-to-fail }}
+    VUL_NAMES_TO_FAIL: ${{ inputs.cve-names-to-fail }}
+    SCANNER_REPOSITORY: ${{ inputs.image-repository }}
+    SCANNER_TAG: ${{ inputs.image-tag }}
+    SCANNER_REGISTRY: ${{ inputs.image-registry }}
+    SCANNER_REGISTRY_USERNAME: ${{ inputs.image-registry-username }}
+    SCANNER_REGISTRY_PASSWORD: ${{ inputs.image-registry-password }}
+    NV_SCANNER_IMAGE: ${{ inputs.nv-scanner-image }}
+    DEBUG: ${{ inputs.debug }}
+    OUTPUT: ${{ inputs.output }}
