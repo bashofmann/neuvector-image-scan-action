@@ -8,7 +8,7 @@
 
 ## Usage
 
-### Scan container image
+### Scan locally built container image
 
 ```yaml
 name: build
@@ -31,6 +31,33 @@ jobs:
         with:
           image-repository: registry.organization.com/org/image-name
           image-tag: ${{ github.sha }}
+          min-high-cves-to-fail: '1'
+          min-medium-cves-to-fail: '1'
+```
+
+### Scan image from remote registry
+
+```yaml
+name: build
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Scan Remote Image
+        uses: bashofmann/neuvector-image-scan-action@main
+        with:
+          image-registry: https://registry.organization.com/
+          image-registry-username: ${{ secrets.RegistryUsername }}
+          image-registry-password: ${{ secrets.RegistryPassword }}
+          image-repository: org/image-name
+          image-tag: 1.0.0
           min-high-cves-to-fail: '1'
           min-medium-cves-to-fail: '1'
 ```
