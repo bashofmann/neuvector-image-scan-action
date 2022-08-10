@@ -72,7 +72,7 @@ if [[ "$OUTPUT" == "text" ]]; then
 
   echo -e "Vulnerabilities grouped by packages:\n"
 
-  jq -r '[.report.vulnerabilities | group_by(.package_name) | .[] | {package_name: .[0].package_name, vuls: [ (.[] | {name: .name, description: .description}) ]}] | .[] | (.package_name) + ":\n" +  (.vuls | [.[] | .name + ": " + .description] | join("\n")) + "\n\n"' scan_result.json
+  jq -r '[.report.vulnerabilities | group_by(.package_name) | .[] | {package_name: .[0].package_name, vuls: [ (.[] | {name: .name, description: .description, severity: .severity}) ]}] | .[] | (.package_name) + ":\n" +  (.vuls | [.[] | .name + " (" + .severity + "): " + .description] | join("\n")) + "\n\n"' scan_result.json
 
   if [[ $scan_fail == "true" ]]; then
     echo -e "\nImage scanning failed ${fail_reason}"

@@ -13,6 +13,15 @@ setup_file() {
     [[ "$output" =~ "Cannot connect to the Docker daemon" ]]
 }
 
+@test "invalid scanner image" {
+    run docker run --rm -e NV_SCANNER_IMAGE=invalid-image:latest -e SCANNER_REGISTRY=https://index.docker.io/ -e SCANNER_REPOSITORY=library/debian -e SCANNER_TAG=11.0 -v /var/run/docker.sock:/var/run/docker.sock bashofmann/neuvector-image-scan-action
+    echo "Status $status"
+    echo "Output"
+    echo -e $output
+    [ "$status" -eq 125 ]
+    [[ "$output" =~ "Unable to find image 'invalid-image:latest'" ]]
+}
+
 @test "scan image with vulnerabilities but don't fail" {
     run docker run --rm -e SCANNER_REGISTRY=https://index.docker.io/ -e SCANNER_REPOSITORY=library/debian -e SCANNER_TAG=11.0 -v /var/run/docker.sock:/var/run/docker.sock bashofmann/neuvector-image-scan-action
     echo "Status $status"
