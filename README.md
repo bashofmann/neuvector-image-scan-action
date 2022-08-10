@@ -29,8 +29,7 @@ jobs:
       - name: Scan Image
         uses: bashofmann/neuvector-image-scan-action@main
         with:
-          image-registry: registry.organization.com
-          image-repository: org/image-name
+          image-repository: registry.organization.com/org/image-name
           image-tag: ${{ github.sha }}
           min-high-cves-to-fail: '1'
           min-medium-cves-to-fail: '1'
