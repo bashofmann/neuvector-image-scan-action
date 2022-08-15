@@ -28,7 +28,7 @@ inputs:
     required: false
     default: '0'
   cve-names-to-fail:
-    description: 'List of CVE names that make the job fail'
+    description: 'Comma-separated list of CVE names that make the job fail, e.g. `CVE-2021-4160,CVE-2022-0778'
     required: false
     default: ''
   nv-scanner-image:
