@@ -60,14 +60,10 @@ else
 fi
 
 if [[ $scan_fail == "true" ]]; then
-  icon=":red_circle:"
-  summary="Image scanning failed. ${fail_reason}"
+  summary=":red_circle: Image scanning failed. ${fail_reason}"
 else
-  icon=":white_check_mark:"
-  summary="Image scanning succeed."
+  summary=":white_check_mark: Image scanning succeed."
 fi
-
-echo "${icon} ${summary}" >> $GITHUB_STEP_SUMMARY
 
 if [[ "$OUTPUT" == "text" ]]; then
   echo -e "NeuVector scan result for ${SCANNER_REGISTRY}${SCANNER_REPOSITORY}:${SCANNER_TAG}\n"
