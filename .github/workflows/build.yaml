@@ -25,7 +25,9 @@ jobs:
       - name: Check if README is up-to-date
         run: |
           npm run docs
-          git diff --quiet || echo 'README is not up-to-date, run `npm install && npm run docs` to update.' && exit 1
+          git status
+          git diff --quiet || echo 'README is not up-to-date, run `npm install && npm run docs` to update.'
+          git diff --quiet || exit 1
 
       - name: Run tests
         run: bats test
