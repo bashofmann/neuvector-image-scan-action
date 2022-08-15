@@ -36,11 +36,11 @@ inputs:
     required: false
     default: 'neuvector/scanner:latest'
   output:
-    description: 'Output format, one of: text,json,csv'
+    description: 'Output format, one of: `text`, `json`, `csv`'
     required: false
     default: 'text'
   debug:
-    description: 'Debug mode, on of: true,false'
+    description: 'Debug mode, on of: `true`, `false`'
     required: false
     default: 'false'
 outputs:

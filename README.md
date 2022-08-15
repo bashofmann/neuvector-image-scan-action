@@ -88,8 +88,8 @@ The following inputs can be used in `step.with`:
 | **`min-medium-cves-to-fail`** | Minimum CVEs with medium severity to fail the job                                           | `0`                        | **false**    |
 | **`cve-names-to-fail`**       | Comma-separated list of CVE names that make the job fail, e.g. `CVE-2021-4160,CVE-2022-0778 |                            | **false**    |
 | **`nv-scanner-image`**        | NeuVector Scanner image to use for scanning                                                 | `neuvector/scanner:latest` | **false**    |
-| **`output`**                  | Output format, one of: text,json,csv                                                        | `text`                     | **false**    |
-| **`debug`**                   | Debug mode, on of: true,false                                                               | `false`                    | **false**    |
+| **`output`**                  | Output format, one of: `text`, `json`, `csv`                                                | `text`                     | **false**    |
+| **`debug`**                   | Debug mode, on of: `true`, `false`                                                          | `false`                    | **false**    |
 
 <!-- end inputs -->
 
@@ -147,11 +147,11 @@ The following inputs can be used in `step.with`:
     # Default: neuvector/scanner:latest
     nv-scanner-image: ""
 
-    # Output format, one of: text,json,csv
+    # Output format, one of: `text`, `json`, `csv`
     # Default: text
     output: ""
 
-    # Debug mode, on of: true,false
+    # Debug mode, on of: `true`, `false`
     # Default: false
     debug: ""
 ```
