@@ -16,5 +16,16 @@ jobs:
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v2.0.0
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - run: npm install
+
+      - name: Check if README is up-to-date
+        run: |
+          npm run docs
+          git diff --quiet || echo 'README is not up-to-date, run `npm install && npm run docs` to update.' && exit 1
+
       - name: Run tests
         run: bats test

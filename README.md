@@ -1,6 +1,13 @@
-# NeuVector Image Scan Action
+<!-- start title -->
 
-> [GitHub Action](https://github.com/features/actions) for [NeuVector Image Scans](https://neuvector.com)
+# GitHub Action: NeuVector Image Scan
+
+<!-- end title -->
+<!-- start description -->
+
+Scans a container image for vulnerabilities with [NeuVector](https://neuvector.com)
+
+<!-- end description -->
 
 [![GitHub Release][release-img]][release]
 [![GitHub Marketplace][marketplace-img]][marketplace]
@@ -31,8 +38,8 @@ jobs:
         with:
           image-repository: registry.organization.com/org/image-name
           image-tag: ${{ github.sha }}
-          min-high-cves-to-fail: '1'
-          min-medium-cves-to-fail: '1'
+          min-high-cves-to-fail: "1"
+          min-medium-cves-to-fail: "1"
 ```
 
 ### Scan image from remote registry
@@ -58,29 +65,97 @@ jobs:
           image-registry-password: ${{ secrets.RegistryPassword }}
           image-repository: org/image-name
           image-tag: 1.0.0
-          min-high-cves-to-fail: '1'
-          min-medium-cves-to-fail: '1'
+          min-high-cves-to-fail: "1"
+          min-medium-cves-to-fail: "1"
 ```
 
 ## Customizing
 
-### inputs
+### Inputs
 
 The following inputs can be used in `step.with`:
 
-| Name                      | Type   | Default                    | Description                                                              |
-|---------------------------|--------|----------------------------|--------------------------------------------------------------------------|
-| `image-registry`          | String |                            | Registry of the image to scan, e.g. `https://registry.organization.com/` |
-| `image-registry-username` | String |                            | Username for the registry authentication                                 |
-| `image-registry-password` | String |                            | Password for the registry authentication                                 |
-| `image-repository`        | String |                            | Repository of the image to scan, e.g. `org/image-name`                   |
-| `image-tag`               | String |                            | Tag of the image to scan, e.g. `1.0.0`                                   |
-| `min-high-cves-to-fail`   | String | `0`                        | Minimum CVEs with high severity to fail the job                          |
-| `min-medium-cves-to-fail` | String | `0`                        | Minimum CVEs with medium severity to fail the job                        |
-| `cve-names-to-fail`       | String |                            | Comma-separated list of CVE names that make the job fail                 |
-| `nv-scanner-image`        | String | `neuvector/scanner:latest` | NeuVector Scanner image to use for scanning                              |
-| `output`                  | String | `text`                     | Output format, one of: text,json,csv                                     |
-| `debug`                   | String | `false`                    | Debug mode, on of: true,false                                            |
+<!-- start inputs -->
+
+| **Input**                     | **Description**                                                          | **Default**                | **Required** |
+| ----------------------------- | ------------------------------------------------------------------------ | -------------------------- | ------------ |
+| **`image-registry`**          | Registry of the image to scan, e.g. `https://registry.organization.com/` |                            | **false**    |
+| **`image-registry-username`** | Username for the registry authentication                                 |                            | **false**    |
+| **`image-registry-password`** | Password for the registry authentication                                 |                            | **false**    |
+| **`image-repository`**        | Repository of the image to scan, e.g. `org/image-name`                   |                            | **true**     |
+| **`image-tag`**               | Tag of the image to scan, e.g. `1.0.0`                                   |                            | **true**     |
+| **`min-high-cves-to-fail`**   | Minimum CVEs with high severity to fail the job                          | `0`                        | **false**    |
+| **`min-medium-cves-to-fail`** | Minimum CVEs with medium severity to fail the job                        | `0`                        | **false**    |
+| **`cve-names-to-fail`**       | List of CVE names that make the job fail                                 |                            | **false**    |
+| **`nv-scanner-image`**        | NeuVector Scanner image to use for scanning                              | `neuvector/scanner:latest` | **false**    |
+| **`output`**                  | Output format, one of: text,json,csv                                     | `text`                     | **false**    |
+| **`debug`**                   | Debug mode, on of: true,false                                            | `false`                    | **false**    |
+
+<!-- end inputs -->
+
+### Outputs
+
+<!-- start outputs -->
+
+| \***\*Output\*\***           | \***\*Description\*\***                              | \***\*Default\*\*** | \***\*Required\*\*** |
+| ---------------------------- | ---------------------------------------------------- | ------------------- | -------------------- |
+| `vulnerability_count`        | Number of found vulnerabilities                      | undefined           | undefined            |
+| `high_vulnerability_count`   | Number of found vulnerabilities with high severity   | undefined           | undefined            |
+| `medium_vulnerability_count` | Number of found vulnerabilities with medium severity | undefined           | undefined            |
+
+<!-- end outputs -->
+
+### Usage
+
+<!-- start usage -->
+
+```yaml
+- uses: bashofmann/neuvector-image-scan-action@main
+  with:
+    # Registry of the image to scan, e.g. `https://registry.organization.com/`
+    # Default:
+    image-registry: ""
+
+    # Username for the registry authentication
+    # Default:
+    image-registry-username: ""
+
+    # Password for the registry authentication
+    # Default:
+    image-registry-password: ""
+
+    # Repository of the image to scan, e.g. `org/image-name`
+    image-repository: ""
+
+    # Tag of the image to scan, e.g. `1.0.0`
+    image-tag: ""
+
+    # Minimum CVEs with high severity to fail the job
+    # Default: 0
+    min-high-cves-to-fail: ""
+
+    # Minimum CVEs with medium severity to fail the job
+    # Default: 0
+    min-medium-cves-to-fail: ""
+
+    # List of CVE names that make the job fail
+    # Default:
+    cve-names-to-fail: ""
+
+    # NeuVector Scanner image to use for scanning
+    # Default: neuvector/scanner:latest
+    nv-scanner-image: ""
+
+    # Output format, one of: text,json,csv
+    # Default: text
+    output: ""
+
+    # Debug mode, on of: true,false
+    # Default: false
+    debug: ""
+```
+
+<!-- end usage -->
 
 [release]: https://github.com/bashofmann/neuvector-image-scan-action/releases/latest
 [release-img]: https://img.shields.io/github/release/bashofmann/neuvector-image-scan-action.svg?logo=github

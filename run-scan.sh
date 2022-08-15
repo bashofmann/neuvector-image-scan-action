@@ -41,19 +41,33 @@ FOUND_MEDIUM=$(cat scan_result.json | jq '.report.vulnerabilities[] | select(.se
 VUL_LIST=$(printf '["%s"]' "${VUL_NAMES_TO_FAIL//,/\",\"}")
 VUL_LIST_FOUND=$(cat scan_result.json | jq --arg arr "$VUL_LIST" '.report.vulnerabilities[] | select(.name as $n | $arr | index($n)) |.name')
 
+echo "::set-output name=vulnerability_count::${VUL_NUM}"
+echo "::set-output name=high_vulnerability_count::${FOUND_HIGH}"
+echo "::set-output name=medium_vulnerability_count::${FOUND_MEDIUM}"
+
 if [[ -n $VUL_LIST_FOUND ]]; then
-  fail_reason="due to specific named vulnerabilities."
+  fail_reason="Found specific named vulnerabilities."
   scan_fail="true"
 elif [ ${HIGH_VUL_TO_FAIL} -ne 0 -a $FOUND_HIGH -ge ${HIGH_VUL_TO_FAIL} ]; then
-  fail_reason="due to number of high vulnerabilities exceeding the criteria."
+  fail_reason="Found ${FOUND_HIGH} high vulnerabilities exceeding the maximum of ${HIGH_VUL_TO_FAIL}."
   scan_fail="true"
 elif [ ${MEDIUM_VUL_TO_FAIL} -ne 0 -a $FOUND_MEDIUM -ge ${MEDIUM_VUL_TO_FAIL} ]; then
-  fail_reason="due to number of medium vulnerabilities exceeding the criteria."
+  fail_reason="Found ${MEDIUM_VUL_TO_FAIL} medium vulnerabilities exceeding the maximum of ${MEDIUM_VUL_TO_FAIL}."
   scan_fail="true"
 else
   fail_reason=""
   scan_fail="false"
 fi
+
+if [[ $scan_fail == "true" ]]; then
+  icon=":red_circle:"
+  summary="Image scanning failed. ${fail_reason}"
+else
+  icon=":white_check_mark:"
+  summary="Image scanning succeed."
+fi
+
+echo "${icon} ${summary}" >> $GITHUB_STEP_SUMMARY
 
 if [[ "$OUTPUT" == "text" ]]; then
   echo -e "NeuVector scan result for ${SCANNER_REGISTRY}${SCANNER_REPOSITORY}:${SCANNER_TAG}\n"
@@ -74,11 +88,7 @@ if [[ "$OUTPUT" == "text" ]]; then
 
   jq -r '[.report.vulnerabilities | group_by(.package_name) | .[] | {package_name: .[0].package_name, vuls: [ (.[] | {name: .name, description: .description, severity: .severity}) ]}] | .[] | (.package_name) + ":\n" +  (.vuls | [.[] | .name + " (" + .severity + "): " + .description] | join("\n")) + "\n\n"' scan_result.json
 
-  if [[ $scan_fail == "true" ]]; then
-    echo -e "\nImage scanning failed ${fail_reason}"
-  else
-    echo -e "\nImage scanning succeed"
-  fi
+  echo -e "\n${summary}"
 fi
 
 if [[ "$OUTPUT" == "json" ]]; then
