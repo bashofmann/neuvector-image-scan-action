@@ -60,9 +60,9 @@ else
 fi
 
 if [[ $scan_fail == "true" ]]; then
-  summary=":red_circle: Image scanning failed. ${fail_reason}"
+  summary="Image scanning failed. ${fail_reason}"
 else
-  summary=":white_check_mark: Image scanning succeed."
+  summary="Image scanning succeed."
 fi
 
 if [[ "$OUTPUT" == "text" ]]; then
