@@ -59,3 +59,7 @@ runs:
     NV_SCANNER_IMAGE: ${{ inputs.nv-scanner-image }}
     DEBUG: ${{ inputs.debug }}
     OUTPUT: ${{ inputs.output }}
+
+branding:
+  icon: search
+  color: green
